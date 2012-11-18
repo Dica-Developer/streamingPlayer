@@ -12,7 +12,7 @@ if (process.version.indexOf('v0.8') != -1) {
 var StringDecoder = require('string_decoder').StringDecoder;
 var SerialPort = require("serialport").SerialPort
 
-var streamingUrls = {};
+var streamingUrls = new Array();
 var currentPosition = 0;
 var player = null;
 
@@ -52,7 +52,7 @@ function loadConfig() {
         try {
           streamingUrls = JSON.parse(streamUrls);
         } catch (e) {
-          streamingUrls = {};
+          console.error('Cannot read config file format "'+streamUrls+'". Start with empty config.', e);
         }
       }
     });
@@ -65,7 +65,9 @@ function next() {
     currentPosition = 0;
   }
   stop();
-  play(streamingUrls[currentPosition]);
+  if (streamingUrls[currentPosition]) {
+    play(streamingUrls[currentPosition].url);
+  }
 }
 
 function prev() {
@@ -74,7 +76,9 @@ function prev() {
     currentPosition = (streamingUrls.length - 1);
   }
   stop();
-  play(streamingUrls[currentPosition]);
+  if (streamingUrls[currentPosition]) {
+    play(streamingUrls[currentPosition].url);
+  }
 }
 
 var serialPort = new SerialPort("/dev/ttyAMA0", {
@@ -83,13 +87,12 @@ var serialPort = new SerialPort("/dev/ttyAMA0", {
 
 function defaultScreen() {
   serialPort.write(String.fromCharCode(12));
-  serialPort.write('|<<  Audica  >>|');
-  serialPort.write('>||  Radio');
+  serialPort.write('|<<  Audica  >>|>||  Radio');
 }
 
 function displaySong() {
   serialPort.write(String.fromCharCode(12));
-  serialPort.write((streamingUrls[currentPosition] || "Nothing"));
+  serialPort.write((streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
 }
 
 serialPort.on("open", function() {
@@ -108,7 +111,9 @@ serialPort.on("data", function (data) {
       stop();
       defaultScreen();
     } else {
-      play(streamingUrls[currentPosition]);
+      if (streamingUrls[currentPosition]) {
+        play(streamingUrls[currentPosition].url);
+      }
       displaySong();
     }
   }
@@ -124,7 +129,7 @@ http.createServer(function (request, response) {
         if (!streamName) {
           streamName = streamUrl;
         }
-        streamingUrls.streamName = streamUrl;
+        streamingUrls.push({"url": streamUrl, "name": streamName});
         writeStreamingUrls();
         displaySong();
         response.writeHead(200, {'Content-Type': 'text/plain'});
@@ -145,7 +150,9 @@ http.createServer(function (request, response) {
       response.end('Playing: '+ (streamingUrls[currentPosition] || "Nothing"));
     } else if ('/play' === requestUrl.pathname) {
       stop();
-      play(streamingUrls[currentPosition]);
+      if (streamingUrls[currentPosition]) {
+        play(streamingUrls[currentPosition].url);
+      }
       displaySong();
       response.writeHead(200, {'Content-Type': 'text/plain'});
       response.end('Playing: '+ (streamingUrls[currentPosition] || "Nothing"));
