@@ -10,7 +10,8 @@ if (process.version.indexOf('v0.8') != -1) {
   fsFileExists = path;
 }
 var StringDecoder = require('string_decoder').StringDecoder;
-var SerialPort = require("serialport").SerialPort
+var SerialPort = require('serialport').SerialPort;
+var Sync = require('sync');
 
 var streamingUrls = new Array();
 var currentPosition = 0;
@@ -37,15 +38,15 @@ function writeStreamingUrls() {
   if (!fsFileExists.existsSync(process.env.HOME + '/.config')) {
     fs.mkdirSync(process.env.HOME + '/.config');
   }
-  if (!fsFileExists.existsSync(process.env.HOME + '/.config/streamingPlayer')) {
-    fs.mkdirSync(process.env.HOME + '/.config/streamingPlayer');
+  if (!fsFileExists.existsSync(process.env.HOME + '/.config/audica-radio')) {
+    fs.mkdirSync(process.env.HOME + '/.config/audica-radio');
   }
-  fs.writeFileSync(process.env.HOME + '/.config/streamingPlayer/streaming_urls.txt', JSON.stringify(streamingUrls));
+  fs.writeFileSync(process.env.HOME + '/.config/audica-radio/streaming_urls.txt', JSON.stringify(streamingUrls));
 }
 
 function loadConfig() {
-  if (fsFileExists.existsSync(process.env.HOME +'/.config/streamingPlayer/streaming_urls.txt')) {
-    fs.readFile(process.env.HOME +'/.config/streamingPlayer/streaming_urls.txt', function (err, streamUrls) {
+  if (fsFileExists.existsSync(process.env.HOME +'/.config/audica-radio/streaming_urls.txt')) {
+    fs.readFile(process.env.HOME +'/.config/audica-radio/streaming_urls.txt', function (err, streamUrls) {
       if (err) {
         console.error(err);
       } else {
@@ -86,6 +87,7 @@ var serialPort = new SerialPort("/dev/ttyAMA0", {
 });
 
 function defaultScreen() {
+  Sync.sleep(100);
   serialPort.write(String.fromCharCode(12));
   serialPort.write('|<<  Audica  >>|>||  Radio');
 }
@@ -169,4 +171,4 @@ http.createServer(function (request, response) {
 }).listen(3141);
 
 loadConfig();
-console.log('Audica radio server started.');
+console.log('Audica radio started.');
