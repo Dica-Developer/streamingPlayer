@@ -1,8 +1,10 @@
 {
   "name" : "audica-radio",
-  "version" : "0.0.1",
+  "version" : "0.0.3",
   "description" : "A stream player with a Textstar Serial LCD and REST UI. Developed to use a raspberrypi as a standalone streaming radio.",
-  "main" : "audica-radio",
+  "bin":{
+    "audica-radio":"./audica-radio"
+  },
   "repository" : {
     "type" : "git"
   , "url" : "https://github.com/Dica-Developer/streamingPlayer"
