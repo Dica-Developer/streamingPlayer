@@ -13,6 +13,7 @@ A stream player with a Textstar Serial LCD and REST UI. Developed to use a raspb
 
 ### LCD UI
 
-        Key A (upper left)  ... Switch to the previous radio station
-        Key B (upper right) ... Switch to the next radio station
-        Key C (bottom left) ... Start/Stop playing the current radio station
+        Key A (upper left)   ... Switch to the previous radio station
+        Key B (upper right)  ... Switch to the next radio station
+        Key C (bottom left)  ... Start/Stop playing the current radio station
+        Key D (bottom right) ... Show ip's of eth0 and/or wlan0 if available
