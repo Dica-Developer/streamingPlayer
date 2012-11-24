@@ -1,6 +1,6 @@
 {
   "name" : "audica-radio",
-  "version" : "0.0.5",
+  "version" : "0.0.6",
   "description" : "A stream player with a Textstar Serial LCD and REST UI. Developed to use a raspberrypi as a standalone streaming radio.",
   "bin":{
     "audica-radio":"./audica-radio"

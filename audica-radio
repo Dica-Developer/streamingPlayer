@@ -95,6 +95,32 @@ function displaySong() {
   serialPort.write((streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
 }
 
+String.prototype.strip = function() {
+  return this.replace(/(^\s+|\s+$)/g,'');
+};
+
+String.prototype.rjust = function(width) {
+  if(this.length < width) {
+    return ' '.repeat( width - this.length ) + this;
+  } else {
+    return this;
+  }
+}
+
+function displayIp() {
+  serialPort.write(String.fromCharCode(12));
+  var ip = spawn('ip', ['addr', 'show', 'wlan0']);
+  ip.stdout.on('data', function (data) {
+    try {
+      serialPort.write('w' + data.split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
+    }
+    ip = spawn('ip', ['addr', 'show', 'eth0']);
+    ip.stdout.on('data', function (data) {
+      serialPort.write('e' + data.split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
+    });
+  });
+}
+
 serialPort.on("open", function() {
   serialPort.write(String.fromCharCode(12));
   serialPort.write('writingshortafteropenwillfail');
@@ -118,6 +144,8 @@ serialPort.on("data", function (data) {
       }
       displaySong();
     }
+  } else if ("D" == data) {
+    displayIp();
   }
 });
 
