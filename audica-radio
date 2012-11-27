@@ -113,10 +113,16 @@ function displayIp() {
   ip.stdout.on('data', function (data) {
     try {
       serialPort.write('w' + data.split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
+    } catch (e) {
+      serialPort.write('w' + 'unknown'.rjust(15));
     }
     ip = spawn('ip', ['addr', 'show', 'eth0']);
     ip.stdout.on('data', function (data) {
-      serialPort.write('e' + data.split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
+      try {
+        serialPort.write('e' + data.split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
+      } catch (e) {
+        serialPort.write('e' + 'unknown'.rjust(15));
+      }
     });
   });
 }
