@@ -99,9 +99,17 @@ String.prototype.strip = function() {
   return this.replace(/(^\s+|\s+$)/g,'');
 };
 
+String.prototype.repeat = function(count) {
+  result = '';
+  for(i=0; i<count;i++) {
+    result = result + this;
+  }
+  return result;
+};
+
 String.prototype.rjust = function(width) {
   if(this.length < width) {
-    return ' '.repeat( width - this.length ) + this;
+    return ' '.repeat(width - this.length) + this;
   } else {
     return this;
   }
@@ -112,14 +120,14 @@ function displayIp() {
   var ip = spawn('ip', ['addr', 'show', 'wlan0']);
   ip.stdout.on('data', function (data) {
     try {
-      serialPort.write('w' + data.split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
+      serialPort.write('w' + data.toString().split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
     } catch (e) {
       serialPort.write('w' + 'unknown'.rjust(15));
     }
     ip = spawn('ip', ['addr', 'show', 'eth0']);
     ip.stdout.on('data', function (data) {
       try {
-        serialPort.write('e' + data.split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
+        serialPort.write('e' + data.toString().split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
       } catch (e) {
         serialPort.write('e' + 'unknown'.rjust(15));
       }
