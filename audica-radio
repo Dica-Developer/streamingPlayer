@@ -9,27 +9,49 @@ if (process.version.indexOf('v0.8') != -1) {
 } else {
   fsFileExists = path;
 }
-var StringDecoder = require('string_decoder').StringDecoder;
-var SerialPort = require('serialport').SerialPort;
+var SerialPort = null;
+try {
+  SerialPort = require('serialport').SerialPort;
+} catch (e) {
+  console.log(e);
+}
+var os = require('os');
+
+var PLAYER_CMD = '/usr/bin/cvlc';
+var RECORDER_CMD = '/usr/bin/streamripper'
 
 var streamingUrls = new Array();
 var currentPosition = 0;
 var player = null;
+var recorder = null;
+var serialPort = null;
+var keyTime = -1;
 
 function play(streamUrl) {
-  player = spawn('/usr/bin/cvlc', [streamUrl]);
+  player = spawn(PLAYER_CMD, [streamUrl]);
   player.stderr.on('data', function (data) {
     console.log('stderr: ' + data);
   });
   player.on('exit', function (code) {
     console.log('child process exited with code ' + code);
+    player = null;
   });
 }
 
-function stop() {
-  if (player) {
-    player.kill('SIGTERM');
-    player = null;
+function record(streamUrl) {
+  recorder = spawn(RECORDER_CMD, [streamUrl, '-l', '10800' , '-d', os.tmpDir()]);
+  recorder.stderr.on('data', function (data) {
+    console.log('stderr: ' + data);
+  });
+  recorder.on('exit', function (code) {
+    console.log('child process exited with code ' + code);
+    recorder = null;
+  });
+}
+
+function stop(process) {
+  if (process) {
+    process.kill('SIGTERM');
   }
 }
 
@@ -81,9 +103,10 @@ function prev() {
   }
 }
 
-var serialPort = new SerialPort("/dev/ttyAMA0", {
-  baudrate: 9600
-});
+function display(text) {
+  serialPort.write(String.fromCharCode(12));
+  serialPort.write(text);
+}
 
 function defaultScreen() {
   serialPort.write(String.fromCharCode(12));
@@ -135,33 +158,62 @@ function displayIp() {
   });
 }
 
-serialPort.on("open", function() {
-  serialPort.write(String.fromCharCode(12));
-  serialPort.write('writingshortafteropenwillfail');
-  defaultScreen();
-});
+if (SerialPort) {
+  serialPort = new SerialPort("/dev/ttyAMA0", {
+    baudrate: 9600
+  });
+}
 
-serialPort.on("data", function (data) {
-  if ("A" == data) {
-    prev();
-    displaySong(); 
-  } else if ("C" == data) {
-    next();
-    displaySong();
-  } else if ("B" == data) {
-    if (player) {
-      stop();
-      defaultScreen();
-    } else {
-      if (streamingUrls[currentPosition]) {
-        play(streamingUrls[currentPosition].url);
-      }
+if (serialPort) {
+  serialPort.on("open", function() {
+    serialPort.write(String.fromCharCode(12));
+    serialPort.write('writingshortafteropenwillfail');
+    defaultScreen();
+  });
+
+  serialPort.on("data", function (data) {
+    key = data.toString();
+    if ("A" === key) {
+      prev();
+      displaySong(); 
+    } else if ("C" === key) {
+      next();
       displaySong();
-    }
-  } else if ("D" == data) {
-    displayIp();
-  }
-});
+    } else if ("B" === key) {
+      keyTime = new Date().getTime();
+    } else if ("D" === key) {
+      displayIp();
+    } else if ("b" === key) {
+      var diff = new Date().getTime() - keyTime;
+      if (diff < 1001) {
+        if (player) {
+          stop(player);
+          defaultScreen();
+        } else {
+          if (streamingUrls[currentPosition]) {
+            play(streamingUrls[currentPosition].url);
+          }
+          displaySong();
+        }
+      } else {
+        if (recorder) {
+          stop(recorder)
+          display('stop recording');
+        } else {
+          record(streamingUrls[currentPosition].url);
+          display('start recording');  
+        }
+        setTimeout(function() {
+          if (player) {
+            displaySong();
+          } else {
+            defaultScreen();
+          }
+        }, 1000); 
+      }
+    } 
+  });
+}
 
 http.createServer(function (request, response) {
   if ('GET' === request.method) {
@@ -186,12 +238,12 @@ http.createServer(function (request, response) {
       next();
       displaySong();
       response.writeHead(200, {'Content-Type': 'text/plain'});
-      response.end('Playing: '+ (streamingUrls[currentPosition] || "Nothing"));
+      response.end('Playing: '+ (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/prev' === requestUrl.pathname) {
       prev();
       displaySong();
       response.writeHead(200, {'Content-Type': 'text/plain'});
-      response.end('Playing: '+ (streamingUrls[currentPosition] || "Nothing"));
+      response.end('Playing: '+ (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/play' === requestUrl.pathname) {
       stop();
       if (streamingUrls[currentPosition]) {
@@ -199,15 +251,27 @@ http.createServer(function (request, response) {
       }
       displaySong();
       response.writeHead(200, {'Content-Type': 'text/plain'});
-      response.end('Playing: '+ (streamingUrls[currentPosition] || "Nothing"));
+      response.end('Playing: '+ (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/stop' === requestUrl.pathname) {
       defaultScreen();
       response.writeHead(200, {'Content-Type': 'text/plain'});
       response.end('Stopping');
-      stop();
+      stop(player);
+    } else if ('/record' === requestUrl.pathname) {
+      response.writeHead(200, {'Content-Type': 'text/plain'});
+      if (!recorder) {
+        response.end('Recording: '+ (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
+        record(streamingUrls[currentPosition].url);
+      } else {
+        response.end('Already recording. Stop recording before starting a new recording.');
+      }
+    } else if ('/recordStop' === requestUrl.pathname) {
+      response.writeHead(200, {'Content-Type': 'text/plain'});
+      response.end('Stop recording');
+      stop(recorder);
     } else {
       response.writeHead(400, {'Content-Type': 'text/plain'});
-      response.end('I did not understand the request. Try one of the following commands "/add?url=[&name=]", "/next", "/prev", "/play" or "/stop".');
+      response.end('I did not understand the request. Try one of the following commands "/add?url=[&name=]", "/next", "/prev", "/play", "/stop", "/record", "/record" or "/recordStop".');
     }
   }
 }).listen(3141);
