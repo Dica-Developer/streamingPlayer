@@ -6,7 +6,7 @@ VLC is needed for playing. Streamripper is needed for recording.
 
 ### REST UI
 
-        http://raspberripi:3141/add?url=<url>[&name=<name>] ... Switch to the next radio station
+        http://raspberripi:3141/add?url=<url>[&name=<name>] ... Add a radio station and optional a name for it
         http://raspberripi:3141/next         ... Switch to the next radio station
         http://raspberripi:3141/prev         ... Switch to the previous radio station
         http://raspberripi:3141/play         ... Start playing the current radio station
