@@ -14,7 +14,7 @@ VLC is needed for playing. Streamripper is needed for recording.
 <tr><td>http://raspberrypi:3141/stop</td><td>Stop playing the current radio station</td></tr>
 <tr><td>http://raspberrypi:3141/record</td><td>Start recording the current radio station</td></tr>
 <tr><td>http://raspberrypi:3141/recordStop</td><td>Stop recording the current radio station</td></tr>
-<table>
+</table>
 
 ### LCD UI
 
