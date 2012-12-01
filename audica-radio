@@ -110,7 +110,8 @@ function display(text) {
 
 function defaultScreen() {
   serialPort.write(String.fromCharCode(12));
-  serialPort.write('|<<  Audica  >>|>||  Radio');
+  serialPort.write('|<<  Audica  >>|>||  Radio     ');
+  serialPort.write(String.fromCharCode(128));
 }
 
 function displaySong() {
@@ -168,6 +169,10 @@ if (serialPort) {
   serialPort.on("open", function() {
     serialPort.write(String.fromCharCode(12));
     serialPort.write('writingshortafteropenwillfail');
+    serialPort.write(String.fromCharCode(254) + String.fromCharCode(68) + 
+      String.fromCharCode(128) + String.fromCharCode(0) + String.fromCharCode(0) +
+      String.fromCharCode(0) + String.fromCharCode(0) + String.fromCharCode(0) +
+      String.fromCharCode(0) + String.fromCharCode(0) + String.fromCharCode(0));
     defaultScreen();
   });
 
@@ -182,10 +187,23 @@ if (serialPort) {
     } else if ("B" === key) {
       keyTime = new Date().getTime();
     } else if ("D" === key) {
-      displayIp();
+      if (recorder) {
+        stop(recorder)
+        display('stop recording');
+      } else {
+        record(streamingUrls[currentPosition].url);
+        display('start recording');  
+      }
+      setTimeout(function() {
+        if (player) {
+          displaySong();
+        } else {
+          defaultScreen();
+        }
+      }, 1000);
     } else if ("b" === key) {
       var diff = new Date().getTime() - keyTime;
-      if (diff < 1001) {
+      if (diff < 2001) {
         if (player) {
           stop(player);
           defaultScreen();
@@ -196,20 +214,7 @@ if (serialPort) {
           displaySong();
         }
       } else {
-        if (recorder) {
-          stop(recorder)
-          display('stop recording');
-        } else {
-          record(streamingUrls[currentPosition].url);
-          display('start recording');  
-        }
-        setTimeout(function() {
-          if (player) {
-            displaySong();
-          } else {
-            defaultScreen();
-          }
-        }, 1000); 
+        displayIp();  
       }
     } 
   });
