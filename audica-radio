@@ -110,8 +110,7 @@ function display(text) {
 
 function defaultScreen() {
   serialPort.write(String.fromCharCode(12));
-  serialPort.write('|<<  Audica  >>|>||  Radio     ');
-  serialPort.write(String.fromCharCode(128));
+  serialPort.write('|<<  Audica  >>|>||  Radio     '+ String.fromCharCode(128));
 }
 
 function displaySong() {
