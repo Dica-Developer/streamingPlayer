@@ -6,18 +6,22 @@ VLC is needed for playing. Streamripper is needed for recording.
 
 ### REST UI
 
-        http://raspberripi:3141/add?url=<url>[&name=<name>] ... Add a radio station and optional a name for it
-        http://raspberripi:3141/next         ... Switch to the next radio station
-        http://raspberripi:3141/prev         ... Switch to the previous radio station
-        http://raspberripi:3141/play         ... Start playing the current radio station
-        http://raspberripi:3141/stop         ... Stop playing the current radio station
-        http://raspberripi:3141/record       ... Start recording the current radio station
-        http://raspberripi:3141/recordStop   ... Stop recording the current radio station
+<table>
+<tr><td>http://raspberripy:3141/add?url=<url>[&amp;name=&lt;name&gt;]</td><td>Add a radio station and a optional name for it</td></tr>
+<tr><td>http://raspberrypi:3141/next</td><td>Switch to the next radio station</td></tr>
+<tr><td>http://raspberrypi:3141/prev</td><td>Switch to the previous radio station</td></tr>
+<tr><td>http://raspberrypi:3141/play</td><td>Start playing the current radio station</td></tr>
+<tr><td>http://raspberrypi:3141/stop</td><td>Stop playing the current radio station</td></tr>
+<tr><td>http://raspberrypi:3141/record</td><td>Start recording the current radio station</td></tr>
+<tr><td>http://raspberrypi:3141/recordStop</td><td>Stop recording the current radio station</td></tr>
+<table>
 
 ### LCD UI
 
-        Key A (upper left)            ... Switch to the previous radio station
-        Key C (upper right)           ... Switch to the next radio station
-        Key B short <1s (bottom left) ... Start/Stop playing the current radio station
-        Key B long >1s (bottom left)  ... Start/Stop recording the current radio station
-        Key D (bottom right)          ... Show ip's of eth0 and/or wlan0 if available
+<table>
+<tr><td>Key A (upper left)</td><td>Switch to the previous radio station</td></tr>
+<tr><td>Key C (upper right)</td><td>Switch to the next radio station</td></tr>
+<tr><td>Key B short &lt;1s (bottom left)</td><td>Start/Stop playing the current radio station</td></tr>
+<tr><td>Key B long &gt;1s (bottom left)</td><td>Start/Stop recording the current radio station</td></tr>
+<tr><td>Key D (bottom right)</td><td>Show ip's of eth0 and/or wlan0 if available</td></tr>
+</table>
