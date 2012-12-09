@@ -1,1 +1,5 @@
 /npm-debug.log
+npm-modules/
+npm-modules/*
+.c9revisions/
+.c9revisions/*

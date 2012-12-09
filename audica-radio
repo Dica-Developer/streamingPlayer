@@ -18,9 +18,9 @@ try {
 var os = require('os');
 
 var PLAYER_CMD = '/usr/bin/cvlc';
-var RECORDER_CMD = '/usr/bin/streamripper'
+var RECORDER_CMD = '/usr/bin/streamripper';
 
-var streamingUrls = new Array();
+var streamingUrls = [];
 var currentPosition = 0;
 var player = null;
 var recorder = null;
@@ -104,18 +104,24 @@ function prev() {
 }
 
 function display(text) {
-  serialPort.write(String.fromCharCode(12));
-  serialPort.write(text);
+  if (serialPort) {
+    serialPort.write(String.fromCharCode(12));
+    serialPort.write(text);
+  }
 }
 
 function defaultScreen() {
-  serialPort.write(String.fromCharCode(12));
-  serialPort.write('|<<  Audica  >>|>||  Radio     '+ String.fromCharCode(128));
+  if (serialPort) {
+    serialPort.write(String.fromCharCode(12));
+    serialPort.write('|<<  Audica  >>|>||  Radio     '+ String.fromCharCode(128));
+  }
 }
 
 function displaySong() {
-  serialPort.write(String.fromCharCode(12));
-  serialPort.write((streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
+  if (serialPort) {
+    serialPort.write(String.fromCharCode(12));
+    serialPort.write((streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
+  }
 }
 
 String.prototype.strip = function() {
@@ -123,15 +129,15 @@ String.prototype.strip = function() {
 };
 
 String.prototype.repeat = function(count) {
-  result = '';
-  for(i=0; i<count;i++) {
+  var result = '';
+  for (var i=0; i<count; i++) {
     result = result + this;
   }
   return result;
 };
 
 String.prototype.rjust = function(width) {
-  if(this.length < width) {
+  if (this.length < width) {
     return ' '.repeat(width - this.length) + this;
   } else {
     return this;
@@ -168,7 +174,7 @@ if (serialPort) {
   serialPort.on("open", function() {
     serialPort.write(String.fromCharCode(12));
     serialPort.write('writingshortafteropenwillfail');
-    serialPort.write(String.fromCharCode(254) + String.fromCharCode(68) + 
+    serialPort.write(String.fromCharCode(254) + String.fromCharCode(68) +
       String.fromCharCode(128) + String.fromCharCode(0) + String.fromCharCode(0) +
       String.fromCharCode(16) + String.fromCharCode(31) + String.fromCharCode(31) +
       String.fromCharCode(16) + String.fromCharCode(0) + String.fromCharCode(0));
@@ -176,10 +182,10 @@ if (serialPort) {
   });
 
   serialPort.on("data", function (data) {
-    key = data.toString();
+    var key = data.toString();
     if ("A" === key) {
       prev();
-      displaySong(); 
+      displaySong();
     } else if ("C" === key) {
       next();
       displaySong();
@@ -191,7 +197,7 @@ if (serialPort) {
         display('stop recording');
       } else {
         record(streamingUrls[currentPosition].url);
-        display('start recording');  
+        display('start recording');
       }
       setTimeout(function() {
         if (player) {
@@ -213,15 +219,15 @@ if (serialPort) {
           displaySong();
         }
       } else {
-        displayIp();  
+        displayIp();
       }
-    } 
+    }
   });
 }
 
 http.createServer(function (request, response) {
-  if ('GET' === request.method) {
-    var requestUrl = url.parse(request.url, true);
+  var requestUrl = url.parse(request.url, true);
+  if ('POST' === request.method) {
     if ('/add' === requestUrl.pathname) {
       var streamUrl = requestUrl.query.url;
       if (streamUrl) {
@@ -238,7 +244,9 @@ http.createServer(function (request, response) {
         response.writeHead(400, {'Content-Type': 'text/plain'});
         response.end('What should I add? You need to provide a valid url parameter to add something.');
       }
-    } else if ('/next' === requestUrl.pathname) {
+    }
+  } else if ('GET' === request.method) {
+    if ('/next' === requestUrl.pathname) {
       next();
       displaySong();
       response.writeHead(200, {'Content-Type': 'text/plain'});
@@ -274,11 +282,26 @@ http.createServer(function (request, response) {
       response.end('Stop recording');
       stop(recorder);
     } else {
-      response.writeHead(400, {'Content-Type': 'text/plain'});
-      response.end('I did not understand the request. Try one of the following commands "/add?url=[&name=]", "/next", "/prev", "/play", "/stop", "/record", "/record" or "/recordStop".');
+      var file = 'views'+ (requestUrl.pathname.length > 1 ? requestUrl.pathname : '/index.html');
+      fs.readFile(file, function(error, data) {
+        if (error) {
+          console.error(error);
+          response.writeHead(404, {'Content-Type': 'text/plain'});
+          response.end('I did not understand the request. Try one of the following commands "/add?url=[&name=]", "/next", "/prev", "/play", "/stop", "/record" or "/recordStop".');
+        } else {
+          var type = 'text/plain';
+          if (file.indexOf('.html') > -1) {
+            type = 'text/html';
+          } else if (file.indexOf('.js') > -1) {
+            type = 'text/javascript';
+          }
+          response.writeHead(200, {'Content-Type': type});
+          response.end(data);
+        }
+      });
     }
   }
-}).listen(3141);
+}).listen(process.env.PORT || 3141);
 
 loadConfig();
 console.log('Audica radio started.');

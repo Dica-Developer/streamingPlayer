@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Audica Radio Server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+    <script src="/js/audica.js"></script>
+  </head>
+<body>
+
+<div data-role="page">
+  <div data-role="header">
+    <h1>Audica Radio Server</h1>
+    <a href="addStation.html" data-role="button" data-icon="plus" class="ui-btn-right" data-rel="dialog" data-iconpos="notext"></a>
+  </div>
+
+  <div data-role="content">
+    <div id="message">
+    </div>
+    <div data-role="controlgroup" data-type="horizontal">
+      <a href="#" id="prev" data-role="button">Previous</a>
+      <a href="#" id="play" data-role="button">Play</a>
+      <a href="#" id="stop" data-role="button">Stop</a>
+      <a href="#" id="next" data-role="button">Next</a>
+    </div>
+    <div data-role="controlgroup" data-type="horizontal">
+      <a href="#" id="record" data-role="button">Record</a>
+      <a href="#" id="recordStop" data-role="button">Record stop</a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
