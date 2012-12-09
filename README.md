@@ -25,3 +25,7 @@ VLC is needed for playing. Streamripper is needed for recording.
 <tr><td>Key B long &gt;2s (bottom left)</td><td>Show ip's of eth0 and/or wlan0 if available</td></tr>
 <tr><td>Key D (bottom right)</td><td>Start/Stop recording the current radio station</td></tr>
 </table>
+
+### Web UI
+
+Open the following url http://raspberrypi:3141/ in a web browser.
