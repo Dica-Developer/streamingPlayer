@@ -30,37 +30,44 @@
       <section>
         <h1>audica radio</h1>
 
-<p>A stream player/recorder with a Textstar Serial LCD and REST UI. Developed to use a raspberrypi as a standalone streaming radio.
+<p>A stream player/recorder with a Textstar Serial LCD, Web UI and REST UI. Developed to use a raspberrypi as a standalone streaming radio.
 VLC is needed for playing. Streamripper is needed for recording.</p>
 
 <h3>REST UI</h3>
 
 <table>
 <tr>
+<td>POST</td>
 <td>http://raspberripy:3141/add?url=[&amp;name=&lt;name&gt;]</td>
 <td>Add a radio station and a optional name for it</td>
 </tr>
 <tr>
+<td>GET</td>
 <td>http://raspberrypi:3141/next</td>
 <td>Switch to the next radio station</td>
 </tr>
 <tr>
+<td>GET</td>
 <td>http://raspberrypi:3141/prev</td>
 <td>Switch to the previous radio station</td>
 </tr>
 <tr>
+<td>GET</td>
 <td>http://raspberrypi:3141/play</td>
 <td>Start playing the current radio station</td>
 </tr>
 <tr>
+<td>GET</td>
 <td>http://raspberrypi:3141/stop</td>
 <td>Stop playing the current radio station</td>
 </tr>
 <tr>
+<td>GET</td>
 <td>http://raspberrypi:3141/record</td>
 <td>Start recording the current radio station</td>
 </tr>
 <tr>
+<td>GET</td>
 <td>http://raspberrypi:3141/recordStop</td>
 <td>Stop recording the current radio station</td>
 </tr>
@@ -87,7 +94,9 @@ VLC is needed for playing. Streamripper is needed for recording.</p>
 <td>Key D (bottom right)</td>
 <td>Start/Stop recording the current radio station</td>
 </tr>
-</table>
+</table><h3>Web UI</h3>
+
+<p>Open the following url http://raspberrypi:3141/ in a web browser.</p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/Dica-Developer">Dica-Developer</a></p>
