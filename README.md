@@ -7,7 +7,7 @@ VLC is needed for playing. Streamripper is needed for recording.
 ### REST UI
 
 <table>
-<tr><td>POST</td><td>http://raspberripy:3141/add?url=<url>[&amp;name=&lt;name&gt;]</td><td>Add a radio station and a optional name for it</td></tr>
+<tr><td>POST</td><td>http://raspberripy:3141/add?url=&lt;url&gt;[&amp;name=&lt;name&gt;]</td><td>Add a radio station and a optional name for it</td></tr>
 <tr><td>GET</td><td>http://raspberrypi:3141/next</td><td>Switch to the next radio station</td></tr>
 <tr><td>GET</td><td>http://raspberrypi:3141/prev</td><td>Switch to the previous radio station</td></tr>
 <tr><td>GET</td><td>http://raspberrypi:3141/play</td><td>Start playing the current radio station</td></tr>
