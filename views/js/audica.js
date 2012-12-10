@@ -9,7 +9,7 @@ $(function() {
         $('#stationUrl').focus();
       }
     });
-    $('#addStationButton').bind('click', function() {
+    $('#addStationButton').bind('vclick', function() {
       var url = $('#stationUrl').val().trim();
       var name = $('#stationName').val().trim();
       if (url && url.length > 0) {
