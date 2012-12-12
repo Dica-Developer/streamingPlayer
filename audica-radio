@@ -1,6 +1,7 @@
 var http = require('http');
 var url = require('url');
 var spawn = require('child_process').spawn;
+var exec = require('child_process').exec;
 var fs = require('fs');
 var path = require('path');
 var fsFileExists = null;
@@ -34,7 +35,6 @@ function play(streamUrl) {
   });
   player.on('exit', function (code) {
     console.log('child process exited with code ' + code);
-    player = null;
   });
 }
 
@@ -45,7 +45,6 @@ function record(streamUrl) {
   });
   recorder.on('exit', function (code) {
     console.log('child process exited with code ' + code);
-    recorder = null;
   });
 }
 
@@ -86,7 +85,8 @@ function next() {
   if (currentPosition >= streamingUrls.length) {
     currentPosition = 0;
   }
-  stop();
+  stop(player);
+  player = null;
   if (streamingUrls[currentPosition]) {
     play(streamingUrls[currentPosition].url);
   }
@@ -97,7 +97,8 @@ function prev() {
   if (currentPosition < 0) {
     currentPosition = (streamingUrls.length - 1);
   }
-  stop();
+  stop(player);
+  player = null;
   if (streamingUrls[currentPosition]) {
     play(streamingUrls[currentPosition].url);
   }
@@ -113,7 +114,7 @@ function display(text) {
 function defaultScreen() {
   if (serialPort) {
     serialPort.write(String.fromCharCode(12));
-    serialPort.write('|<<  Audica  >>|>||  Radio     '+ String.fromCharCode(128));
+    serialPort.write('|<<  Audica  >>|>||  Radio    '+ String.fromCharCode(128));
   }
 }
 
@@ -146,17 +147,15 @@ String.prototype.rjust = function(width) {
 
 function displayIp() {
   serialPort.write(String.fromCharCode(12));
-  var ip = spawn('ip', ['addr', 'show', 'wlan0']);
-  ip.stdout.on('data', function (data) {
+  exec('ip addr show wlan0', function (error, stdout, stderr) {
     try {
-      serialPort.write('w' + data.toString().split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
+      serialPort.write('w' + stdout.split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
     } catch (e) {
       serialPort.write('w' + 'unknown'.rjust(15));
     }
-    ip = spawn('ip', ['addr', 'show', 'eth0']);
-    ip.stdout.on('data', function (data) {
+    error('ip addr show eth0', function (error, stdout, stderr) {
       try {
-        serialPort.write('e' + data.toString().split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
+        serialPort.write('e' + stdout.split('\n')[2].strip().split(' ')[1].split('/')[0].rjust(15));
       } catch (e) {
         serialPort.write('e' + 'unknown'.rjust(15));
       }
@@ -194,6 +193,7 @@ if (serialPort) {
     } else if ("D" === key) {
       if (recorder) {
         stop(recorder)
+        recorder = null;
         display('stop recording');
       } else {
         record(streamingUrls[currentPosition].url);
@@ -211,6 +211,7 @@ if (serialPort) {
       if (diff < 2001) {
         if (player) {
           stop(player);
+          player = null;
           defaultScreen();
         } else {
           if (streamingUrls[currentPosition]) {
@@ -257,7 +258,8 @@ http.createServer(function (request, response) {
       response.writeHead(200, {'Content-Type': 'text/plain'});
       response.end('Playing: '+ (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/play' === requestUrl.pathname) {
-      stop();
+      stop(player);
+      player = null;
       if (streamingUrls[currentPosition]) {
         play(streamingUrls[currentPosition].url);
       }
@@ -269,6 +271,7 @@ http.createServer(function (request, response) {
       response.writeHead(200, {'Content-Type': 'text/plain'});
       response.end('Stopping');
       stop(player);
+      player = null;
     } else if ('/record' === requestUrl.pathname) {
       response.writeHead(200, {'Content-Type': 'text/plain'});
       if (!recorder) {
@@ -281,6 +284,7 @@ http.createServer(function (request, response) {
       response.writeHead(200, {'Content-Type': 'text/plain'});
       response.end('Stop recording');
       stop(recorder);
+      recorder = null;
     } else {
       var file = 'views'+ (requestUrl.pathname.length > 1 ? requestUrl.pathname : '/index.html');
       fs.readFile(file, function(error, data) {
