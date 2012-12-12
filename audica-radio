@@ -114,7 +114,7 @@ function display(text) {
 function defaultScreen() {
   if (serialPort) {
     serialPort.write(String.fromCharCode(12));
-    serialPort.write('|<<  Audica  >>|>||  Radio    '+ String.fromCharCode(128));
+    serialPort.write('|<<  Audica  >>|>||  Radio     o');
   }
 }
 
@@ -173,10 +173,6 @@ if (serialPort) {
   serialPort.on("open", function() {
     serialPort.write(String.fromCharCode(12));
     serialPort.write('writingshortafteropenwillfail');
-    serialPort.write(String.fromCharCode(254) + String.fromCharCode(68) +
-      String.fromCharCode(128) + String.fromCharCode(0) + String.fromCharCode(0) +
-      String.fromCharCode(16) + String.fromCharCode(31) + String.fromCharCode(31) +
-      String.fromCharCode(16) + String.fromCharCode(0) + String.fromCharCode(0));
     defaultScreen();
   });
 
