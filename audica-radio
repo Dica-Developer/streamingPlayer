@@ -286,7 +286,11 @@ http.createServer(function (request, response) {
       stop(recorder);
       recorder = null;
     } else {
-      var file = 'views'+ (requestUrl.pathname.length > 1 ? requestUrl.pathname : '/index.html');
+      var viewsDir = 'views';
+      if (fsFileExists.existsSync('/usr/local/lib/node_modules/audica-radio/views')) {
+        viewsDir = '/usr/local/lib/node_modules/audica-radio/views';
+      }
+      var file = viewsDir + (requestUrl.pathname.length > 1 ? requestUrl.pathname : '/index.html');
       fs.readFile(file, function(error, data) {
         if (error) {
           console.error(error);
