@@ -1,3 +1,5 @@
+"use strict";
+/*jslint stupid: true */
 var http = require('http');
 var url = require('url');
 var spawn = require('child_process').spawn;
@@ -5,7 +7,7 @@ var exec = require('child_process').exec;
 var fs = require('fs');
 var path = require('path');
 var fsFileExists = null;
-if (process.version.indexOf('v0.8') != -1) {
+if (process.version.indexOf('v0.8') !== -1) {
   fsFileExists = fs;
 } else {
   fsFileExists = path;
@@ -39,7 +41,7 @@ function play(streamUrl) {
 }
 
 function record(streamUrl) {
-  recorder = spawn(RECORDER_CMD, [streamUrl, '-l', '10800' , '-d', os.tmpDir()]);
+  recorder = spawn(RECORDER_CMD, [streamUrl, '-l', '10800', '-d', os.tmpDir()]);
   recorder.stderr.on('data', function (data) {
     console.log('stderr: ' + data);
   });
@@ -65,15 +67,15 @@ function writeStreamingUrls() {
 }
 
 function loadConfig() {
-  if (fsFileExists.existsSync(process.env.HOME +'/.config/audica-radio/streaming_urls.txt')) {
-    fs.readFile(process.env.HOME +'/.config/audica-radio/streaming_urls.txt', function (err, streamUrls) {
+  if (fsFileExists.existsSync(process.env.HOME + '/.config/audica-radio/streaming_urls.txt')) {
+    fs.readFile(process.env.HOME + '/.config/audica-radio/streaming_urls.txt', function (err, streamUrls) {
       if (err) {
         console.error(err);
       } else {
         try {
           streamingUrls = JSON.parse(streamUrls);
         } catch (e) {
-          console.error('Cannot read config file format "'+streamUrls+'". Start with empty config.', e);
+          console.error('Cannot read config file format "' + streamUrls + '". Start with empty config.', e);
         }
       }
     });
@@ -125,25 +127,25 @@ function displaySong() {
   }
 }
 
-String.prototype.strip = function() {
-  return this.replace(/(^\s+|\s+$)/g,'');
+String.prototype.strip = function () {
+  return this.replace(/(^\s+|\s+$)/g, '');
 };
 
-String.prototype.repeat = function(count) {
-  var result = '';
-  for (var i=0; i<count; i++) {
+String.prototype.repeat = function (count) {
+  var result = '', i;
+  for (i = 0; i < count; i++) {
     result = result + this;
   }
   return result;
 };
 
-String.prototype.rjust = function(width) {
+String.prototype.rjust = function (width) {
+  var result = this;
   if (this.length < width) {
-    return ' '.repeat(width - this.length) + this;
-  } else {
-    return this;
+    result = ' '.repeat(width - this.length) + this;
   }
-}
+  return result;
+};
 
 function displayIp() {
   serialPort.write(String.fromCharCode(12));
@@ -170,7 +172,7 @@ if (SerialPort) {
 }
 
 if (serialPort) {
-  serialPort.on("open", function() {
+  serialPort.on("open", function () {
     serialPort.write(String.fromCharCode(12));
     serialPort.write('writingshortafteropenwillfail');
     defaultScreen();
@@ -188,14 +190,14 @@ if (serialPort) {
       keyTime = new Date().getTime();
     } else if ("D" === key) {
       if (recorder) {
-        stop(recorder)
+        stop(recorder);
         recorder = null;
         display('stop recording');
       } else {
         record(streamingUrls[currentPosition].url);
         display('start recording');
       }
-      setTimeout(function() {
+      setTimeout(function () {
         if (player) {
           displaySong();
         } else {
@@ -236,7 +238,7 @@ http.createServer(function (request, response) {
         writeStreamingUrls();
         displaySong();
         response.writeHead(200, {'Content-Type': 'text/plain'});
-        response.end(streamUrl +' added');
+        response.end(streamUrl + ' added');
       } else {
         response.writeHead(400, {'Content-Type': 'text/plain'});
         response.end('What should I add? You need to provide a valid url parameter to add something.');
@@ -247,12 +249,12 @@ http.createServer(function (request, response) {
       next();
       displaySong();
       response.writeHead(200, {'Content-Type': 'text/plain'});
-      response.end('Playing: '+ (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
+      response.end('Playing: ' + (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/prev' === requestUrl.pathname) {
       prev();
       displaySong();
       response.writeHead(200, {'Content-Type': 'text/plain'});
-      response.end('Playing: '+ (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
+      response.end('Playing: ' + (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/play' === requestUrl.pathname) {
       stop(player);
       player = null;
@@ -261,7 +263,7 @@ http.createServer(function (request, response) {
       }
       displaySong();
       response.writeHead(200, {'Content-Type': 'text/plain'});
-      response.end('Playing: '+ (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
+      response.end('Playing: ' + (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/stop' === requestUrl.pathname) {
       defaultScreen();
       response.writeHead(200, {'Content-Type': 'text/plain'});
@@ -271,7 +273,7 @@ http.createServer(function (request, response) {
     } else if ('/record' === requestUrl.pathname) {
       response.writeHead(200, {'Content-Type': 'text/plain'});
       if (!recorder) {
-        response.end('Recording: '+ (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
+        response.end('Recording: ' + (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
         record(streamingUrls[currentPosition].url);
       } else {
         response.end('Already recording. Stop recording before starting a new recording.');
@@ -287,7 +289,7 @@ http.createServer(function (request, response) {
         viewsDir = '/usr/local/lib/node_modules/audica-radio/views';
       }
       var file = viewsDir + (requestUrl.pathname.length > 1 ? requestUrl.pathname : '/index.html');
-      fs.readFile(file, function(error, data) {
+      fs.readFile(file, function (error, data) {
         if (error) {
           console.error(error);
           response.writeHead(404, {'Content-Type': 'text/plain'});
