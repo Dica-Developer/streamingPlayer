@@ -1,3 +1,4 @@
+@charset 'UTF-8';
 @media all and (max-width: 540px) {
   .ui-grid-c-two > :nth-child(n) {
     width: 50%;
