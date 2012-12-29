@@ -2,8 +2,9 @@
 /*jslint stupid: true */
 var http = require('http');
 var url = require('url');
-var spawn = require('child_process').spawn;
-var exec = require('child_process').exec;
+var childProcess = require('child_process');
+var spawn = childProcess.spawn;
+var exec = childProcess.exec;
 var fs = require('fs');
 var path = require('path');
 var fsFileExists = null;
@@ -20,6 +21,11 @@ try {
 }
 var os = require('os');
 
+var viewsDir = 'views';
+if (fsFileExists.existsSync('/usr/local/lib/node_modules/audica-radio/views')) {
+  viewsDir = '/usr/local/lib/node_modules/audica-radio/views';
+}
+
 var PLAYER_CMD = '/usr/bin/cvlc';
 var RECORDER_CMD = '/usr/bin/streamripper';
 
@@ -29,6 +35,7 @@ var player = null;
 var recorder = null;
 var serialPort = null;
 var keyTime = -1;
+var playlistParserProcess = childProcess.fork('');
 
 function play(streamUrl) {
   player = spawn(PLAYER_CMD, [streamUrl]);
@@ -38,6 +45,7 @@ function play(streamUrl) {
   player.on('exit', function (code) {
     console.log('child process exited with code ' + code);
   });
+  // TODO emit event for playing with song as argument
 }
 
 function record(streamUrl) {
@@ -54,6 +62,7 @@ function stop(process) {
   if (process) {
     process.kill('SIGTERM');
   }
+  // TODO emit play stop events
 }
 
 function writeStreamingUrls() {
@@ -224,6 +233,8 @@ if (serialPort) {
   });
 }
 
+
+
 http.createServer(function (request, response) {
   var requestUrl = url.parse(request.url, true);
   if ('POST' === request.method) {
@@ -234,7 +245,7 @@ http.createServer(function (request, response) {
         if (!streamName) {
           streamName = streamUrl;
         }
-        streamingUrls.push({"url": streamUrl, "name": streamName});
+        streamingUrls.push({"url": streamUrl, "name": streamName, "playlistUrl": null, "playlistParsePattern": null});
         writeStreamingUrls();
         displaySong();
         response.writeHead(200, {'Content-Type': 'text/plain'});
@@ -284,10 +295,6 @@ http.createServer(function (request, response) {
       stop(recorder);
       recorder = null;
     } else {
-      var viewsDir = 'views';
-      if (fsFileExists.existsSync('/usr/local/lib/node_modules/audica-radio/views')) {
-        viewsDir = '/usr/local/lib/node_modules/audica-radio/views';
-      }
       var file = viewsDir + (requestUrl.pathname.length > 1 ? requestUrl.pathname : '/index.html');
       fs.readFile(file, function (error, data) {
         if (error) {
