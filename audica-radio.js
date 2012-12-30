@@ -20,22 +20,53 @@ try {
   console.log(e);
 }
 var os = require('os');
-
+var streamingUrlFile = process.env.HOME + '/.config/audica-radio/streaming_urls.txt';
+var rootDir = '.';
 var viewsDir = 'views';
-if (fsFileExists.existsSync('/usr/local/lib/node_modules/audica-radio/views')) {
-  viewsDir = '/usr/local/lib/node_modules/audica-radio/views';
-}
+
+fsFileExists.exists(viewsDir, function (exists) {
+  if (!exists) {
+    viewsDir = '/usr/local/lib/node_modules/audica-radio/views';
+    rootDir = '/usr/local/lib/node_modules/audica-radio';
+    fsFileExists.exists(viewsDir, function (exists) {
+      if (!exists) {
+        viewsDir = '/usr/lib/node_modules/audica-radio/views';
+        rootDir = '/usr/lib/node_modules/audica-radio';
+        fsFileExists.exists(viewsDir, function (exists) {
+          if (!exists) {
+            viewsDir = 'views';
+            rootDir = '.';
+          }
+        });
+      }
+    });
+  }
+});
 
 var PLAYER_CMD = '/usr/bin/cvlc';
 var RECORDER_CMD = '/usr/bin/streamripper';
 
+var server = null;
 var streamingUrls = [];
 var currentPosition = 0;
 var player = null;
 var recorder = null;
 var serialPort = null;
 var keyTime = -1;
-var playlistParserProcess = childProcess.fork('');
+var currentSongInformation = '';
+var playlistProcess = childProcess.fork(rootDir + '/audica-playlist-fetcher.js');
+playlistProcess.on('message', function (msg) {
+  var i;
+  currentSongInformation = '';
+  if (msg) {
+    for ((msg.length > 1 ? i = 1 : i = 0); i < msg.length; i++) {
+      if (currentSongInformation !== '') {
+        currentSongInformation = currentSongInformation + ' ';
+      }
+      currentSongInformation = currentSongInformation + msg[i].trim();
+    }
+  }
+});
 
 function play(streamUrl) {
   player = spawn(PLAYER_CMD, [streamUrl]);
@@ -45,7 +76,7 @@ function play(streamUrl) {
   player.on('exit', function (code) {
     console.log('child process exited with code ' + code);
   });
-  // TODO emit event for playing with song as argument
+  playlistProcess.send({msg: 'streamChange', obj: streamingUrls[currentPosition]});
 }
 
 function record(streamUrl) {
@@ -62,7 +93,7 @@ function stop(process) {
   if (process) {
     process.kill('SIGTERM');
   }
-  // TODO emit play stop events
+  playlistProcess.send({msg: 'streamChange'});
 }
 
 function writeStreamingUrls() {
@@ -72,12 +103,12 @@ function writeStreamingUrls() {
   if (!fsFileExists.existsSync(process.env.HOME + '/.config/audica-radio')) {
     fs.mkdirSync(process.env.HOME + '/.config/audica-radio');
   }
-  fs.writeFileSync(process.env.HOME + '/.config/audica-radio/streaming_urls.txt', JSON.stringify(streamingUrls));
+  fs.writeFileSync(streamingUrlFile, JSON.stringify(streamingUrls));
 }
 
 function loadConfig() {
-  if (fsFileExists.existsSync(process.env.HOME + '/.config/audica-radio/streaming_urls.txt')) {
-    fs.readFile(process.env.HOME + '/.config/audica-radio/streaming_urls.txt', function (err, streamUrls) {
+  if (fsFileExists.existsSync(streamingUrlFile)) {
+    fs.readFile(streamingUrlFile, function (err, streamUrls) {
       if (err) {
         console.error(err);
       } else {
@@ -129,11 +160,8 @@ function defaultScreen() {
   }
 }
 
-function displaySong() {
-  if (serialPort) {
-    serialPort.write(String.fromCharCode(12));
-    serialPort.write((streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
-  }
+function displayStreamName() {
+  display((streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
 }
 
 String.prototype.strip = function () {
@@ -191,10 +219,10 @@ if (serialPort) {
     var key = data.toString();
     if ("A" === key) {
       prev();
-      displaySong();
+      displayStreamName();
     } else if ("C" === key) {
       next();
-      displaySong();
+      displayStreamName();
     } else if ("B" === key) {
       keyTime = new Date().getTime();
     } else if ("D" === key) {
@@ -208,7 +236,7 @@ if (serialPort) {
       }
       setTimeout(function () {
         if (player) {
-          displaySong();
+          displayStreamName();
         } else {
           defaultScreen();
         }
@@ -224,7 +252,7 @@ if (serialPort) {
           if (streamingUrls[currentPosition]) {
             play(streamingUrls[currentPosition].url);
           }
-          displaySong();
+          displayStreamName();
         }
       } else {
         displayIp();
@@ -233,9 +261,33 @@ if (serialPort) {
   });
 }
 
+function cleanup() {
+  if (playlistProcess) {
+    playlistProcess.kill();
+  }
+  if (recorder) {
+    recorder.kill();
+  }
+  if (player) {
+    player.kill();
+  }
+  console.log('Audica radio stopped.');
+}
 
+process.on('exit', function () {
+  cleanup();
+});
+process.on('SIGINT', function () {
+  process.exit(0);
+});
+process.on('SIGTERM', function () {
+  process.exit(0);
+});
+process.on('SIGKILL', function () {
+  process.exit(0);
+});
 
-http.createServer(function (request, response) {
+server = http.createServer(function (request, response) {
   var requestUrl = url.parse(request.url, true);
   if ('POST' === request.method) {
     if ('/add' === requestUrl.pathname) {
@@ -245,9 +297,11 @@ http.createServer(function (request, response) {
         if (!streamName) {
           streamName = streamUrl;
         }
-        streamingUrls.push({"url": streamUrl, "name": streamName, "playlistUrl": null, "playlistParsePattern": null});
+        var playlistUrl = requestUrl.query.playlistUrl;
+        var playlistRegexp = requestUrl.query.playlistRegexp;
+        streamingUrls.push({"url": streamUrl, "name": streamName, "playlistUrl": playlistUrl,  "playlistRegexp": playlistRegexp});
         writeStreamingUrls();
-        displaySong();
+        displayStreamName();
         response.writeHead(200, {'Content-Type': 'text/plain'});
         response.end(streamUrl + ' added');
       } else {
@@ -256,14 +310,17 @@ http.createServer(function (request, response) {
       }
     }
   } else if ('GET' === request.method) {
-    if ('/next' === requestUrl.pathname) {
+    if ('/currentSong' === requestUrl.pathname) {
+      response.writeHead(200, {'Content-Type': 'text/plain'});
+      response.end(currentSongInformation);
+    } else if ('/next' === requestUrl.pathname) {
       next();
-      displaySong();
+      displayStreamName();
       response.writeHead(200, {'Content-Type': 'text/plain'});
       response.end('Playing: ' + (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/prev' === requestUrl.pathname) {
       prev();
-      displaySong();
+      displayStreamName();
       response.writeHead(200, {'Content-Type': 'text/plain'});
       response.end('Playing: ' + (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/play' === requestUrl.pathname) {
@@ -272,7 +329,7 @@ http.createServer(function (request, response) {
       if (streamingUrls[currentPosition]) {
         play(streamingUrls[currentPosition].url);
       }
-      displaySong();
+      displayStreamName();
       response.writeHead(200, {'Content-Type': 'text/plain'});
       response.end('Playing: ' + (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/stop' === requestUrl.pathname) {
@@ -300,7 +357,7 @@ http.createServer(function (request, response) {
         if (error) {
           console.error(error);
           response.writeHead(404, {'Content-Type': 'text/plain'});
-          response.end('I did not understand the request. Try one of the following commands "/add?url=[&name=]", "/next", "/prev", "/play", "/stop", "/record" or "/recordStop".');
+          response.end('I did not understand the request. Try one of the following commands "/add?url=[&name=][&playlistUrl=&playlistRegexp=]", "/next", "/prev", "/play", "/stop", "/record" or "/recordStop".');
         } else {
           var type = 'text/plain';
           if (file.indexOf('.html') > -1) {
@@ -320,7 +377,8 @@ http.createServer(function (request, response) {
       });
     }
   }
-}).listen(process.env.PORT || 3141);
+});
+server.listen(process.env.PORT || 3141);
 
 loadConfig();
 console.log('Audica radio started.');

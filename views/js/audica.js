@@ -1,5 +1,12 @@
 "use strict";
 /*global $, document*/
+function refreshPlaylist() {
+  $.get('/currentSong', function (data) {
+    $('#playlist').html(data);
+    setTimeout(refreshPlaylist, 30000);
+  });
+}
+
 $(function () {
   $(document).on('pageinit', function () {
     $('#stationUrl').bind('change', function () {
@@ -14,10 +21,18 @@ $(function () {
     $('#addStationButton').bind('vclick', function () {
       var url = $('#stationUrl').val().trim();
       var name = $('#stationName').val().trim();
+      var playlistRegexp = $('#playlistRegexp').val().trim();
+      var playlistUrl = $('#playlistUrl').val().trim();
       if (url && url.length > 0) {
         var params = '?url=' + url;
         if (name && name.length > 0) {
           params = params + '&name=' + name;
+        }
+        if (playlistUrl && playlistUrl.length > 0) {
+          params = params + '&playlistUrl=' + playlistUrl;
+        }
+        if (playlistRegexp && playlistRegexp.length > 0) {
+          params = params + '&playlistRegexp=' + playlistRegexp;
         }
         $.post('/add' + params, function () {
           $('#addStationDialog').dialog('close');
@@ -55,4 +70,5 @@ $(function () {
       $("#message").text(response);
     });
   });
+  refreshPlaylist();
 });
