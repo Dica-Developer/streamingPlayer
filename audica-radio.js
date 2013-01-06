@@ -261,6 +261,26 @@ if (serialPort) {
   });
 }
 
+function deleteStream(oldData) {
+  var i;
+  for (i = 0; i < streamingUrls.length; i++) {
+    if (streamingUrls[i].name === oldData.name && streamingUrls[i].url === oldData.url
+        && streamingUrls[i].playlistUrl === oldData.playlistUrl && streamingUrls[i].playlistRegexp === oldData.playlistRegexp) {
+      streamingUrls.splice(i, 1);
+    }
+  }
+}
+
+function findStream(oldData) {
+  var i;
+  for (i = 0; i < streamingUrls.length; i++) {
+    if (streamingUrls[i].name === oldData.name && streamingUrls[i].url === oldData.url
+        && streamingUrls[i].playlistUrl === oldData.playlistUrl && streamingUrls[i].playlistRegexp === oldData.playlistRegexp) {
+      return streamingUrls[i];
+    }
+  }
+}
+
 function cleanup() {
   if (playlistProcess) {
     playlistProcess.kill();
@@ -290,27 +310,61 @@ process.on('SIGKILL', function () {
 server = http.createServer(function (request, response) {
   var requestUrl = url.parse(request.url, true);
   if ('POST' === request.method) {
-    if ('/add' === requestUrl.pathname) {
-      var streamUrl = requestUrl.query.url;
+    var streamUrl = requestUrl.query.url;
+    var streamName = requestUrl.query.name;
+    var oldData = requestUrl.query.old;
+    if ('/delete' === requestUrl.pathname) {
+      if (oldData) {
+        var streamingO = JSON.parse(oldData);
+        deleteStream(streamingO);
+        writeStreamingUrls();
+        response.writeHead(200, {'Content-Type': 'text/plain'});
+        response.end(streamingO.url + ' deleted');
+      } else {
+        response.writeHead(400, {'Content-Type': 'text/plain'});
+        response.end('What should I update? You need to provide a valid url and old parameter to update something.');
+      }
+    } else if ('/add' === requestUrl.pathname) {
       if (streamUrl) {
-        var streamName = requestUrl.query.name;
         if (!streamName) {
           streamName = streamUrl;
         }
-        var playlistUrl = requestUrl.query.playlistUrl;
-        var playlistRegexp = requestUrl.query.playlistRegexp;
-        streamingUrls.push({"url": streamUrl, "name": streamName, "playlistUrl": playlistUrl,  "playlistRegexp": playlistRegexp});
+        streamingUrls.push({"url": streamUrl, "name": streamName, "playlistUrl": requestUrl.query.playlistUrl,  "playlistRegexp": requestUrl.query.playlistRegexp});
         writeStreamingUrls();
-        displayStreamName();
         response.writeHead(200, {'Content-Type': 'text/plain'});
         response.end(streamUrl + ' added');
       } else {
         response.writeHead(400, {'Content-Type': 'text/plain'});
         response.end('What should I add? You need to provide a valid url parameter to add something.');
       }
+    } else if ('/update' === requestUrl.pathname) {
+      if (streamUrl && oldData) {
+        if (!streamName) {
+          streamName = streamUrl;
+        }
+        var stream = findStream(JSON.parse(oldData));
+        if (stream) {
+          stream.url = streamUrl;
+          stream.name = streamName;
+          stream.playlistRegexp = requestUrl.query.playlistRegexp;
+          stream.playlistUrl = requestUrl.query.playlistUrl;
+          writeStreamingUrls();
+          response.writeHead(200, {'Content-Type': 'text/plain'});
+          response.end(streamUrl + ' updated');
+        } else {
+          response.writeHead(404, {'Content-Type': 'text/plain'});
+          response.end('Could not find ' + streamUrl + ' to update.');
+        }
+      } else {
+        response.writeHead(400, {'Content-Type': 'text/plain'});
+        response.end('What should I update? You need to provide a valid url and old parameter to update something.');
+      }
     }
   } else if ('GET' === request.method) {
-    if ('/currentSong' === requestUrl.pathname) {
+    if ('/stations' === requestUrl.pathname) {
+      response.writeHead(200, {'Content-Type': 'application/json'});
+      response.end(JSON.stringify(streamingUrls));
+    } else if ('/currentSong' === requestUrl.pathname) {
       response.writeHead(200, {'Content-Type': 'text/plain'});
       response.end(currentSongInformation);
     } else if ('/next' === requestUrl.pathname) {

@@ -1,0 +1,25 @@
+<!DOCTYPE html><!DOCTYPE html>
+<html>
+  <body>
+    <div data-role="page" id="editStationDialog">
+      <div data-role="header">
+      <h1>Edit Radio Station</h1>
+      </div>
+      <div data-role="content">
+        <label for="stationUrl" class="ui-hidden-accessible">Radio station url</label>
+        <input type="text" id="stationUrl" name="url" placeholder="Radio station url"/>
+        <label for="stationName" class="ui-hidden-accessible">Radio station name</label>
+        <input type="text" name="name" id="stationName" placeholder="Radio station name"/>
+        <label for="playlistUrl" class="ui-hidden-accessible">Playlist URL</label>
+        <input type="text" name="playlistUrl" id="playlistUrl" placeholder="Radio station playlist URL"/>
+        <label for="playlistRegexp" class="ui-hidden-accessible">Playlist XPath</label>
+        <input type="text" name="playlistRegexp" id="playlistRegexp" placeholder="Playlist RegExp to select current song information"/>
+        <input type="hidden" name="oldData" id="oldData"/>
+        <div class="ui-grid-a ui-grid-a-one">
+          <div class="ui-block-a"><a href="#" data-role="button" id="deleteStationButton">Delete</a></div>
+          <div class="ui-block-b"><a href="#" data-role="button" id="updateStationButton">Save</a></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
