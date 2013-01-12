@@ -1,20 +1,18 @@
 {
-  "name" : "audica-radio",
-  "version" : "0.1.7",
-  "description" : "A stream player/recorder with a Textstar Serial LCD, Web UI and REST UI. Developed to use a raspberrypi as a standalone streaming radio. VLC is needed for playing. Streamripper is needed for recording.",
-  "bin":{
-    "audica-radio":"./audica-radio.js"
+  "name": "audica-radio",
+  "version": "0.1.7",
+  "description": "A stream player/recorder with a Textstar Serial LCD, Web UI and REST UI. Developed to use a raspberrypi as a standalone streaming radio. VLC is needed for playing. Streamripper is needed for recording.",
+  "bin": {
+    "audica-radio": "./audica-radio.js"
   },
-  "repository" : {
-    "type" : "git"
-  , "url" : "https://github.com/Dica-Developer/streamingPlayer"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dica-Developer/streamingPlayer"
   },
-  "dependencies" :
-    {
-      "serialport" : ">=1.0.6"
-    }
-, "engines" :
-    {
-      "node" : ">=0.6.0"
-    }
+  "dependencies": {
+    "serialport": ">=1.0.6"
+  },
+  "engines": {
+    "node": ">=0.6.0"
+  }
 }

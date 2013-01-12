@@ -1,5 +1,4 @@
-"use strict";
-/*jslint stupid: true */
+"use strict"; /*jslint stupid: true */
 var http = require('http');
 var url = require('url');
 var childProcess = require('child_process');
@@ -76,7 +75,10 @@ function play(streamUrl) {
   player.on('exit', function (code) {
     console.log('child process exited with code ' + code);
   });
-  playlistProcess.send({msg: 'streamChange', obj: streamingUrls[currentPosition]});
+  playlistProcess.send({
+    msg: 'streamChange',
+    obj: streamingUrls[currentPosition]
+  });
 }
 
 function record(streamUrl) {
@@ -93,7 +95,9 @@ function stop(process) {
   if (process) {
     process.kill('SIGTERM');
   }
-  playlistProcess.send({msg: 'streamChange'});
+  playlistProcess.send({
+    msg: 'streamChange'
+  });
 }
 
 function writeStreamingUrls() {
@@ -169,7 +173,8 @@ String.prototype.strip = function () {
 };
 
 String.prototype.repeat = function (count) {
-  var result = '', i;
+  var result = '',
+    i;
   for (i = 0; i < count; i++) {
     result = result + this;
   }
@@ -264,8 +269,7 @@ if (serialPort) {
 function deleteStream(oldData) {
   var i;
   for (i = 0; i < streamingUrls.length; i++) {
-    if (streamingUrls[i].name === oldData.name && streamingUrls[i].url === oldData.url
-        && streamingUrls[i].playlistUrl === oldData.playlistUrl && streamingUrls[i].playlistRegexp === oldData.playlistRegexp) {
+    if (streamingUrls[i].name === oldData.name && streamingUrls[i].url === oldData.url && streamingUrls[i].playlistUrl === oldData.playlistUrl && streamingUrls[i].playlistRegexp === oldData.playlistRegexp) {
       streamingUrls.splice(i, 1);
     }
   }
@@ -274,8 +278,7 @@ function deleteStream(oldData) {
 function findStream(oldData) {
   var i;
   for (i = 0; i < streamingUrls.length; i++) {
-    if (streamingUrls[i].name === oldData.name && streamingUrls[i].url === oldData.url
-        && streamingUrls[i].playlistUrl === oldData.playlistUrl && streamingUrls[i].playlistRegexp === oldData.playlistRegexp) {
+    if (streamingUrls[i].name === oldData.name && streamingUrls[i].url === oldData.url && streamingUrls[i].playlistUrl === oldData.playlistUrl && streamingUrls[i].playlistRegexp === oldData.playlistRegexp) {
       return streamingUrls[i];
     }
   }
@@ -318,10 +321,14 @@ server = http.createServer(function (request, response) {
         var streamingO = JSON.parse(oldData);
         deleteStream(streamingO);
         writeStreamingUrls();
-        response.writeHead(200, {'Content-Type': 'text/plain'});
+        response.writeHead(200, {
+          'Content-Type': 'text/plain'
+        });
         response.end(streamingO.url + ' deleted');
       } else {
-        response.writeHead(400, {'Content-Type': 'text/plain'});
+        response.writeHead(400, {
+          'Content-Type': 'text/plain'
+        });
         response.end('What should I update? You need to provide a valid url and old parameter to update something.');
       }
     } else if ('/add' === requestUrl.pathname) {
@@ -329,12 +336,21 @@ server = http.createServer(function (request, response) {
         if (!streamName) {
           streamName = streamUrl;
         }
-        streamingUrls.push({"url": streamUrl, "name": streamName, "playlistUrl": requestUrl.query.playlistUrl,  "playlistRegexp": requestUrl.query.playlistRegexp});
+        streamingUrls.push({
+          "url": streamUrl,
+          "name": streamName,
+          "playlistUrl": requestUrl.query.playlistUrl,
+          "playlistRegexp": requestUrl.query.playlistRegexp
+        });
         writeStreamingUrls();
-        response.writeHead(200, {'Content-Type': 'text/plain'});
+        response.writeHead(200, {
+          'Content-Type': 'text/plain'
+        });
         response.end(streamUrl + ' added');
       } else {
-        response.writeHead(400, {'Content-Type': 'text/plain'});
+        response.writeHead(400, {
+          'Content-Type': 'text/plain'
+        });
         response.end('What should I add? You need to provide a valid url parameter to add something.');
       }
     } else if ('/update' === requestUrl.pathname) {
@@ -349,33 +365,47 @@ server = http.createServer(function (request, response) {
           stream.playlistRegexp = requestUrl.query.playlistRegexp;
           stream.playlistUrl = requestUrl.query.playlistUrl;
           writeStreamingUrls();
-          response.writeHead(200, {'Content-Type': 'text/plain'});
+          response.writeHead(200, {
+            'Content-Type': 'text/plain'
+          });
           response.end(streamUrl + ' updated');
         } else {
-          response.writeHead(404, {'Content-Type': 'text/plain'});
+          response.writeHead(404, {
+            'Content-Type': 'text/plain'
+          });
           response.end('Could not find ' + streamUrl + ' to update.');
         }
       } else {
-        response.writeHead(400, {'Content-Type': 'text/plain'});
+        response.writeHead(400, {
+          'Content-Type': 'text/plain'
+        });
         response.end('What should I update? You need to provide a valid url and old parameter to update something.');
       }
     }
   } else if ('GET' === request.method) {
     if ('/stations' === requestUrl.pathname) {
-      response.writeHead(200, {'Content-Type': 'application/json'});
+      response.writeHead(200, {
+        'Content-Type': 'application/json'
+      });
       response.end(JSON.stringify(streamingUrls));
     } else if ('/currentSong' === requestUrl.pathname) {
-      response.writeHead(200, {'Content-Type': 'text/plain'});
+      response.writeHead(200, {
+        'Content-Type': 'text/plain'
+      });
       response.end(currentSongInformation);
     } else if ('/next' === requestUrl.pathname) {
       next();
       displayStreamName();
-      response.writeHead(200, {'Content-Type': 'text/plain'});
+      response.writeHead(200, {
+        'Content-Type': 'text/plain'
+      });
       response.end('Playing: ' + (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/prev' === requestUrl.pathname) {
       prev();
       displayStreamName();
-      response.writeHead(200, {'Content-Type': 'text/plain'});
+      response.writeHead(200, {
+        'Content-Type': 'text/plain'
+      });
       response.end('Playing: ' + (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/play' === requestUrl.pathname) {
       stop(player);
@@ -384,16 +414,22 @@ server = http.createServer(function (request, response) {
         play(streamingUrls[currentPosition].url);
       }
       displayStreamName();
-      response.writeHead(200, {'Content-Type': 'text/plain'});
+      response.writeHead(200, {
+        'Content-Type': 'text/plain'
+      });
       response.end('Playing: ' + (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
     } else if ('/stop' === requestUrl.pathname) {
       defaultScreen();
-      response.writeHead(200, {'Content-Type': 'text/plain'});
+      response.writeHead(200, {
+        'Content-Type': 'text/plain'
+      });
       response.end('Stopping');
       stop(player);
       player = null;
     } else if ('/record' === requestUrl.pathname) {
-      response.writeHead(200, {'Content-Type': 'text/plain'});
+      response.writeHead(200, {
+        'Content-Type': 'text/plain'
+      });
       if (!recorder) {
         response.end('Recording: ' + (streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
         record(streamingUrls[currentPosition].url);
@@ -401,7 +437,9 @@ server = http.createServer(function (request, response) {
         response.end('Already recording. Stop recording before starting a new recording.');
       }
     } else if ('/recordStop' === requestUrl.pathname) {
-      response.writeHead(200, {'Content-Type': 'text/plain'});
+      response.writeHead(200, {
+        'Content-Type': 'text/plain'
+      });
       response.end('Stop recording');
       stop(recorder);
       recorder = null;
@@ -410,7 +448,9 @@ server = http.createServer(function (request, response) {
       fs.readFile(file, function (error, data) {
         if (error) {
           console.error(error);
-          response.writeHead(404, {'Content-Type': 'text/plain'});
+          response.writeHead(404, {
+            'Content-Type': 'text/plain'
+          });
           response.end('I did not understand the request. Try one of the following commands "/add?url=[&name=][&playlistUrl=&playlistRegexp=]", "/next", "/prev", "/play", "/stop", "/record" or "/recordStop".');
         } else {
           var type = 'text/plain';
@@ -425,7 +465,9 @@ server = http.createServer(function (request, response) {
           } else if (file.indexOf('.css') > -1) {
             type = 'text/css';
           }
-          response.writeHead(200, {'Content-Type': type});
+          response.writeHead(200, {
+            'Content-Type': type
+          });
           response.end(data);
         }
       });

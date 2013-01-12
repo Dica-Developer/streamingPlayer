@@ -1,5 +1,7 @@
 "use strict";
+
 /*global $, document*/
+
 function refreshPlaylist() {
   $.get('/currentSong', function (data) {
     $('#playlist').html(data);
