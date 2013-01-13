@@ -1,4 +1,7 @@
-"use strict"; /*jslint stupid: true */
+"use strict";
+
+/*jslint stupid: true */
+
 var http = require('http');
 var url = require('url');
 var childProcess = require('child_process');
@@ -60,7 +63,7 @@ playlistProcess.on('message', function (msg) {
   if (msg) {
     for ((msg.length > 1 ? i = 1 : i = 0); i < msg.length; i++) {
       if (currentSongInformation !== '') {
-        currentSongInformation = currentSongInformation + ' ';
+        currentSongInformation = currentSongInformation + ' - ';
       }
       currentSongInformation = currentSongInformation + msg[i].trim();
     }
