@@ -22,6 +22,8 @@ try {
   console.log(e);
 }
 var os = require('os');
+var EventEmitter = require("events").EventEmitter;
+var eventEmitter = new EventEmitter();
 var streamingUrlFile = process.env.HOME + '/.config/audica-radio/streaming_urls.txt';
 var rootDir = '.';
 var viewsDir = 'views';
@@ -39,9 +41,14 @@ fsFileExists.exists(viewsDir, function (exists) {
             viewsDir = 'views';
             rootDir = '.';
           }
+          eventEmitter.emit('rootDirInit');
         });
+      } else {
+        eventEmitter.emit('rootDirInit');
       }
     });
+  } else {
+    eventEmitter.emit('rootDirInit');
   }
 });
 
@@ -56,18 +63,22 @@ var recorder = null;
 var serialPort = null;
 var keyTime = -1;
 var currentSongInformation = '';
-var playlistProcess = childProcess.fork(rootDir + '/audica-playlist-fetcher.js');
-playlistProcess.on('message', function (msg) {
-  var i;
-  currentSongInformation = '';
-  if (msg) {
-    for ((msg.length > 1 ? i = 1 : i = 0); i < msg.length; i++) {
-      if (currentSongInformation !== '') {
-        currentSongInformation = currentSongInformation + ' - ';
+var playlistProcess;
+eventEmitter.once('rootDirInit', function () {
+  console.log("a");
+  playlistProcess = childProcess.fork(rootDir + '/audica-playlist-fetcher.js');
+  playlistProcess.on('message', function (msg) {
+    var i;
+    currentSongInformation = '';
+    if (msg) {
+      for ((msg.length > 1 ? i = 1 : i = 0); i < msg.length; i++) {
+        if (currentSongInformation !== '') {
+          currentSongInformation = currentSongInformation + ' - ';
+        }
+        currentSongInformation = currentSongInformation + msg[i].trim();
       }
-      currentSongInformation = currentSongInformation + msg[i].trim();
     }
-  }
+  });
 });
 
 function play(streamUrl) {
