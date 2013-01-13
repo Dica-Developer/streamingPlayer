@@ -49,7 +49,7 @@ Complete values for the "radio eins" radio station:
 <table>
 <tr><td>url</td><td>http:/&#x002FA;www.radioeins.de/live.m3u</td></tr>
 <tr><td>name</td><td>radio eins</td></tr>
-<tr><td>playlistUrl</td><td>http:/&#x002FA;www.radioeins.de/themen/musik/playlists.html</td></tr>
+<tr><td>playlistUrl</td><td>http:/&#x002FA;www.radioeins.de/include/rad/nowonair/now_on_air.html</td></tr>
 <tr><td>playlistRegexp</td><td>&lt;p class="artist"&gt;(.*?)&lt;/p&gt;[^]*&lt;p class="songtitle"&gt;(.*?)&lt;/p&gt;</td></tr>
 </table>
 
