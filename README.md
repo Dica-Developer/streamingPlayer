@@ -41,7 +41,7 @@ Complete values for the "kexp" radio station:
 <table>
 <tr><td>url</td><td>http:/&#x002F;kexp-mp3-2.cac.washington.edu:8000/listen.pls</td></tr>
 <tr><td>name</td><td>kexp</td></tr>
-<tr><td>playlistUrl</td><td>http://kexp.org/playlist/miniplaylist</td></tr>
+<tr><td>playlistUrl</td><td>http:&#x002F;/kexp.org/playlist/miniplaylist</td></tr>
 <tr><td>playlistRegexp</td><td>&lt;title&gt;([^]*)&lt;/title&gt;</td></tr>
 </table>
 
