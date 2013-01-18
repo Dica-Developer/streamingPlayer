@@ -5,7 +5,6 @@
 function refreshPlaylist() {
   $.get('/currentSong', function (data) {
     $('#playlist').html(data);
-    setTimeout(refreshPlaylist, 30000);
   });
 }
 
@@ -123,4 +122,5 @@ $(function () {
     });
   });
   refreshPlaylist();
+  setInterval(refreshPlaylist, 30000);
 });
