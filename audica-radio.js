@@ -66,7 +66,6 @@ var keyTime = -1;
 var currentSongInformation = '';
 var playlistProcess;
 eventEmitter.once('rootDirInit', function () {
-  console.log("a");
   playlistProcess = childProcess.fork(rootDir + '/audica-playlist-fetcher.js');
   playlistProcess.on('message', function (msg) {
     var i;
