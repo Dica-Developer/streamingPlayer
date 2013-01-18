@@ -1,7 +1,7 @@
 "use strict";
 
 /*jslint stupid: true */
-/*global require, process, console*/
+/*global require, process, console, Buffer*/
 
 var http = require('http');
 var url = require('url');
@@ -65,21 +65,20 @@ var serialPort = null;
 var keyTime = -1;
 var currentSongInformation = '';
 var playlistProcess;
-eventEmitter.once('rootDirInit', function () {
-  playlistProcess = childProcess.fork(rootDir + '/audica-playlist-fetcher.js');
-  playlistProcess.on('message', function (msg) {
-    var i;
-    currentSongInformation = '';
-    if (msg) {
-      for ((msg.length > 1 ? i = 1 : i = 0); i < msg.length; i++) {
-        if (currentSongInformation !== '') {
-          currentSongInformation = currentSongInformation + ' - ';
-        }
-        currentSongInformation = currentSongInformation + msg[i].trim();
-      }
-    }
-  });
-});
+var scrollOneLineDown = new Buffer(3, 'ascii');
+scrollOneLineDown[0] = 0xFE;
+scrollOneLineDown[1] = 0x4F;
+scrollOneLineDown[2] = 0x00;
+var positionCursorOneOne = new Buffer(4, 'ascii');
+positionCursorOneOne[0] = 0xFE;
+positionCursorOneOne[1] = 0x50;
+positionCursorOneOne[2] = 0x01;
+positionCursorOneOne[3] = 0x01;
+var goToLineOne = new Buffer(3, 'ascii');
+goToLineOne[0] = 0xFE;
+goToLineOne[1] = 0x47;
+goToLineOne[2] = 0x01;
+var currentLcdLine = 1;
 
 function play(streamUrl) {
   player = spawn(PLAYER_CMD, [streamUrl]);
@@ -167,6 +166,8 @@ function prev() {
 function display(text) {
   if (serialPort) {
     serialPort.write(String.fromCharCode(12));
+    serialPort.write(positionCursorOneOne);
+    serialPort.write(goToLineOne);
     serialPort.write(text);
   }
 }
@@ -178,9 +179,48 @@ function defaultScreen() {
   }
 }
 
-function displayStreamName() {
-  display((streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing")));
+function getStreamName() {
+  return streamingUrls[currentPosition] && (streamingUrls[currentPosition].name || streamingUrls[currentPosition].url || "Nothing");
 }
+
+function displayStreamName() {
+  var streamName = getStreamName();
+  display(streamName);
+}
+
+setInterval(function () {
+  var displayedText = getStreamName() + ' - ' + currentSongInformation;
+  var maxLcdLines = Math.ceil(displayedText.length / 16);
+  if (serialPort && (player || recorder) && displayedText.length > 2) {
+    if (maxLcdLines > currentLcdLine) {
+      serialPort.write(scrollOneLineDown);
+      currentLcdLine++;
+    } else {
+      serialPort.write(positionCursorOneOne);
+      serialPort.write(goToLineOne);
+      currentLcdLine = 1;
+    }
+  }
+}, 3000);
+
+eventEmitter.once('rootDirInit', function () {
+  playlistProcess = childProcess.fork(rootDir + '/audica-playlist-fetcher.js');
+  playlistProcess.on('message', function (msg) {
+    var i;
+    currentSongInformation = '';
+    if (msg) {
+      for ((msg.length > 1 ? i = 1 : i = 0); i < msg.length; i++) {
+        if (currentSongInformation !== '') {
+          currentSongInformation = currentSongInformation + ' - ';
+        }
+        currentSongInformation = currentSongInformation + msg[i].trim();
+      }
+    }
+    if (currentSongInformation.length > 0) {
+      display(getStreamName() + ' - ' + currentSongInformation);
+    }
+  });
+});
 
 String.prototype.strip = function () {
   return this.replace(/(^\s+|\s+$)/g, '');
