@@ -189,7 +189,7 @@ function displayStreamName() {
 }
 
 setInterval(function () {
-  var displayedText = getStreamName() + ' - ' + currentSongInformation;
+  var displayedText = getStreamName() + (currentSongInformation.length > 0 ? (' - ' + currentSongInformation) : '');
   var maxLcdLines = Math.ceil(displayedText.length / 16);
   if (serialPort && (player || recorder) && displayedText.length > 2) {
     if (maxLcdLines > currentLcdLine) {
@@ -216,9 +216,7 @@ eventEmitter.once('rootDirInit', function () {
         currentSongInformation = currentSongInformation + msg[i].trim();
       }
     }
-    if (currentSongInformation.length > 0) {
-      display(getStreamName() + ' - ' + currentSongInformation);
-    }
+    display(getStreamName() + (currentSongInformation.length > 0 ? (' - ' + currentSongInformation) : ''));
   });
 });
 
