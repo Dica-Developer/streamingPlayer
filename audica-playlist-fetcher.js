@@ -1,4 +1,7 @@
 "use strict";
+
+/*global process, require, console*/
+
 var http = require('http');
 
 var playlistUrl;

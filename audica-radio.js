@@ -1,6 +1,7 @@
 "use strict";
 
 /*jslint stupid: true */
+/*global require, process, console*/
 
 var http = require('http');
 var url = require('url');
