@@ -192,7 +192,7 @@
   setInterval(function () {
     var displayedText = getStreamName() + encoder.htmlDecode((currentSongInformation.length > 0 ? (' - ' + currentSongInformation) : ''));
     var maxLcdLines = Math.ceil(displayedText.length / 16);
-    if (serialPort && (player || recorder) && displayedText.length > 2) {
+    if (serialPort && (player || recorder) && maxLcdLines > 2) {
       if (maxLcdLines > currentLcdLine) {
         serialPort.write(scrollOneLineDown);
         currentLcdLine++;
