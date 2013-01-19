@@ -28,6 +28,33 @@ var eventEmitter = new EventEmitter();
 var streamingUrlFile = process.env.HOME + '/.config/audica-radio/streaming_urls.txt';
 var rootDir = '.';
 var viewsDir = 'views';
+var PLAYER_CMD = '/usr/bin/cvlc';
+var RECORDER_CMD = '/usr/bin/streamripper';
+var server = null;
+var streamingUrls = [];
+var currentPosition = 0;
+var player = null;
+var recorder = null;
+var serialPort = null;
+var keyTime = -1;
+var currentSongInformation = '';
+var playlistProcess;
+var scrollOneLineDown = new Buffer(3, 'ascii');
+scrollOneLineDown[0] = 0xFE;
+scrollOneLineDown[1] = 0x4F;
+scrollOneLineDown[2] = 0x00;
+var positionCursorOneOne = new Buffer(4, 'ascii');
+positionCursorOneOne[0] = 0xFE;
+positionCursorOneOne[1] = 0x50;
+positionCursorOneOne[2] = 0x01;
+positionCursorOneOne[3] = 0x01;
+var goToLineOne = new Buffer(3, 'ascii');
+goToLineOne[0] = 0xFE;
+goToLineOne[1] = 0x47;
+goToLineOne[2] = 0x01;
+var currentLcdLine = 1;
+var Encoder = require('node-html-encoder').Encoder;
+var encoder = new Encoder('entity');
 
 fsFileExists.exists(viewsDir, function (exists) {
   if (!exists) {
@@ -52,33 +79,6 @@ fsFileExists.exists(viewsDir, function (exists) {
     eventEmitter.emit('rootDirInit');
   }
 });
-
-var PLAYER_CMD = '/usr/bin/cvlc';
-var RECORDER_CMD = '/usr/bin/streamripper';
-
-var server = null;
-var streamingUrls = [];
-var currentPosition = 0;
-var player = null;
-var recorder = null;
-var serialPort = null;
-var keyTime = -1;
-var currentSongInformation = '';
-var playlistProcess;
-var scrollOneLineDown = new Buffer(3, 'ascii');
-scrollOneLineDown[0] = 0xFE;
-scrollOneLineDown[1] = 0x4F;
-scrollOneLineDown[2] = 0x00;
-var positionCursorOneOne = new Buffer(4, 'ascii');
-positionCursorOneOne[0] = 0xFE;
-positionCursorOneOne[1] = 0x50;
-positionCursorOneOne[2] = 0x01;
-positionCursorOneOne[3] = 0x01;
-var goToLineOne = new Buffer(3, 'ascii');
-goToLineOne[0] = 0xFE;
-goToLineOne[1] = 0x47;
-goToLineOne[2] = 0x01;
-var currentLcdLine = 1;
 
 function play(streamUrl) {
   player = spawn(PLAYER_CMD, [streamUrl]);
@@ -189,7 +189,7 @@ function displayStreamName() {
 }
 
 setInterval(function () {
-  var displayedText = getStreamName() + (currentSongInformation.length > 0 ? (' - ' + currentSongInformation) : '');
+  var displayedText = getStreamName() + encoder.htmlDecode((currentSongInformation.length > 0 ? (' - ' + currentSongInformation) : ''));
   var maxLcdLines = Math.ceil(displayedText.length / 16);
   if (serialPort && (player || recorder) && displayedText.length > 2) {
     if (maxLcdLines > currentLcdLine) {
@@ -216,7 +216,7 @@ eventEmitter.once('rootDirInit', function () {
         currentSongInformation = currentSongInformation + msg[i].trim();
       }
     }
-    display(getStreamName() + (currentSongInformation.length > 0 ? (' - ' + currentSongInformation) : ''));
+    display(getStreamName() + encoder.htmlDecode((currentSongInformation.length > 0 ? (' - ' + currentSongInformation) : '')));
   });
 });
 
