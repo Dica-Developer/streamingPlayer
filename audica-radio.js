@@ -192,7 +192,7 @@
   setInterval(function () {
     var displayedText = getStreamName() + encoder.htmlDecode((currentSongInformation.length > 0 ? (' - ' + currentSongInformation) : ''));
     var maxLcdLines = Math.ceil(displayedText.length / 16);
-    if (serialPort && (player || recorder) && maxLcdLines > 2) {
+    if (null !== serialPort && undefined !== serialPort && null !== player && maxLcdLines > 2) {
       if (maxLcdLines > currentLcdLine) {
         serialPort.write(scrollOneLineDown);
         currentLcdLine++;
@@ -217,7 +217,9 @@
           currentSongInformation = currentSongInformation + msg[i].trim();
         }
       }
-      display(getStreamName() + encoder.htmlDecode((currentSongInformation.length > 0 ? (' - ' + currentSongInformation) : '')));
+      if (null !== player) {
+        display(getStreamName() + encoder.htmlDecode((currentSongInformation.length > 0 ? (' - ' + currentSongInformation) : '')));
+      }
     });
   });
 
