@@ -361,7 +361,10 @@
   process.on('SIGTERM', function () {
     process.exit(0);
   });
-  process.on('SIGKILL', function () {
+  process.on('SIGBREAK', function () {
+    process.exit(0);
+  });
+  process.on('SIGHUP', function () {
     process.exit(0);
   });
 
