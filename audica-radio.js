@@ -12,7 +12,7 @@
   var fs = require('fs');
   var path = require('path');
   var fsFileExists = null;
-  if (process.version.indexOf('v0.8') !== -1) {
+  if (process.version.indexOf('v0.8') !== -1 || process.version.indexOf('v0.10') !== -1) {
     fsFileExists = fs;
   } else {
     fsFileExists = path;
