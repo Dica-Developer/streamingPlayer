@@ -55,7 +55,7 @@
           if (playlistRegexp && playlistRegexp.length > 0) {
             params = params + '&playlistRegexp=' + playlistRegexp;
           }
-          $.post('/update' + params, function () {
+          $.post('/add' + params, function () {
             $('#addStationDialog').dialog('close');
           });
         }
