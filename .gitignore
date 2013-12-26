@@ -3,3 +3,5 @@ npm-modules/
 npm-modules/*
 .c9revisions/
 .c9revisions/*
+node_modules/
+node_modules/*
