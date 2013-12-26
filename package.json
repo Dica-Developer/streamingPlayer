@@ -1,6 +1,6 @@
 {
   "name": "audica-radio",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "A stream player/recorder with a Textstar Serial LCD, Web UI and REST UI. Developed to use a raspberrypi as a standalone streaming radio. VLC is needed for playing. Streamripper is needed for recording.",
   "bin": {
     "audica-radio": "./audica-radio.js"
